@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: personal-news
+    env: python
+    plan: free
+
+    buildCommand: |
+      pip install -r backend/requirements.txt &&
+      cd frontend && npm ci && npm run build
+
+    startCommand: bash start.sh
+
+    healthCheckPath: /api/health
+
+    envVars:
+      - key: OPENROUTER_API_KEY
+        sync: false

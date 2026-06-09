@@ -1,0 +1,39 @@
+"""GET /api/breaking — 속보 헤드라인 (2분 캐시, 페이지네이션)"""
+
+import math
+import time
+
+from fastapi import APIRouter, Query
+
+from services.news_fetcher import fetch_google_news
+
+router = APIRouter()
+
+_BREAKING_KEYWORD = "속보"
+_MAX_ARTICLES = 20
+_CACHE_TTL = 120   # 2분
+_cache: dict = {"data": None, "updated_at": 0.0}
+
+
+@router.get("/breaking")
+async def get_breaking(
+    page: int = Query(default=1, ge=1),
+    size: int = Query(default=10, ge=1, le=20),
+) -> dict:
+    now = time.monotonic()
+    if _cache["data"] is None or now - _cache["updated_at"] > _CACHE_TTL:
+        _cache["data"] = await fetch_google_news(_BREAKING_KEYWORD, max_items=_MAX_ARTICLES, when="1d")
+        _cache["updated_at"] = now
+
+    articles = _cache["data"]
+    total = len(articles)
+    total_pages = max(1, math.ceil(total / size))
+    start = (page - 1) * size
+    end = start + size
+
+    return {
+        "articles": articles[start:end],
+        "total": total,
+        "page": page,
+        "totalPages": total_pages,
+    }
