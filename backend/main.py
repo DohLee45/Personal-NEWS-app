@@ -4,7 +4,6 @@
 개발:     Vite dev server(port 5173)와 분리 실행
 """
 
-import os
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -29,17 +28,11 @@ app = FastAPI(
 )
 
 # ── CORS ─────────────────────────────────────────────────────────────────────
-_raw_origins = os.getenv("ALLOWED_ORIGINS", "")
-_origins: list[str] = [o.strip().strip('"').strip("'") for o in _raw_origins.split(",") if o.strip()]
-for _local in ("http://localhost:5173", "http://localhost:3000"):
-    if _local not in _origins:
-        _origins.append(_local)
-
+# 앱이 localStorage만 사용하고 쿠키/세션이 없으므로 allow_credentials=False + allow_origins=["*"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=_origins,
-    allow_origin_regex=r"https://.*\.vercel\.app$",
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
