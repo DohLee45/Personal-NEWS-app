@@ -1,5 +1,6 @@
 import { memo, useState, useEffect, useCallback } from 'react'
 import Pagination from '../Pagination'
+import { API_BASE } from '../../utils/apiBase'
 import styles from './MarketWidget.module.css'
 
 const PAGE_SIZE = 5
@@ -21,7 +22,7 @@ const MarketWidget = memo(function MarketWidget() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch('/api/market')
+      const res = await fetch(`${API_BASE}/api/market`)
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = await res.json()
       setItems(data.items || [])

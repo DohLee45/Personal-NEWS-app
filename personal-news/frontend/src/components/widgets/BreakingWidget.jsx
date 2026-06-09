@@ -1,6 +1,7 @@
 import { memo, useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Pagination from '../Pagination'
+import { API_BASE } from '../../utils/apiBase'
 import styles from './BreakingWidget.module.css'
 
 const PAGE_SIZE = 10
@@ -17,8 +18,8 @@ const BreakingWidget = memo(function BreakingWidget() {
     setError(null)
     try {
       const [r1, r2] = await Promise.all([
-        fetch('/api/breaking?page=1&size=10'),
-        fetch('/api/breaking?page=2&size=10'),
+        fetch(`${API_BASE}/api/breaking?page=1&size=10`),
+        fetch(`${API_BASE}/api/breaking?page=2&size=10`),
       ])
       const [d1, d2] = await Promise.all([
         r1.ok ? r1.json() : { articles: [] },

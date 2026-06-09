@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { sortByInterest } from '../utils/interestScore'
+import { API_BASE } from '../utils/apiBase'
 
 const _cache = new Map()
 const CACHE_TTL = 5 * 60 * 1000
@@ -11,13 +12,13 @@ function cacheKey(q) {
 async function fetchArticles(kws, q, signal) {
   if (q) {
     const res = await fetch(
-      `/api/news?keywords=${encodeURIComponent(q)}&max=40&when=20d`,
+      `${API_BASE}/api/news?keywords=${encodeURIComponent(q)}&max=40&when=20d`,
       { signal }
     )
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     return res.json()
   }
-  const res = await fetch(`/api/news?max=20`, { signal })
+  const res = await fetch(`${API_BASE}/api/news?max=20`, { signal })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   return res.json()
 }
