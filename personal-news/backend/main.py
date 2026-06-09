@@ -22,25 +22,33 @@ BASE_DIR = Path(__file__).parent
 STATIC_DIR = BASE_DIR / "static"
 
 
-# ── FastAPI 앱 ──────────────────────────────────────────────────────────────────
+# ── FastAPI 앱 ────────────────────────────────────────────────────────────────
 app = FastAPI(
     title="Personal NEWS API",
     version="1.0.0",
 )
 
-# ── CORS ───────────────────────────────────────────────────────────────────────────
-raw_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000")
-_origins = [o.strip() for o in raw_origins.split(",") if o.strip()]
+# ── CORS ─────────────────────────────────────────────────────────────────────
+# ALLOWED_ORIGINS 환경변수: 쉼표 구분 URL 목록
+# 예) ALLOWED_ORIGINS=https://personal-news.vercel.app,https://my-preview.vercel.app
+_raw_origins = os.getenv("ALLOWED_ORIGINS", "")
+_origins: list[str] = [o.strip().strip('"').strip("'") for o in _raw_origins.split(",") if o.strip()]
+# localhost는 환경변수와 무관하게 항상 포함
+for _local in ("http://localhost:5173", "http://localhost:3000"):
+    if _local not in _origins:
+        _origins.append(_local)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_origins,
+    # vercel.app 프리뷰 URL까지 통째로 허용 (allow_credentials=True와 함께 쓸 수 있음)
+    allow_origin_regex=r"https://.*\.vercel\.app$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ── API 라우터 등록 (static mount보다 반드시 먼저) ─────────────────────────────────
+# ── API 라우터 등록 (static mount보다 반드시 먼저) ─────────────────────────────
 app.include_router(news.router,     prefix="/api", tags=["news"])
 app.include_router(breaking.router, prefix="/api", tags=["breaking"])
 app.include_router(ranking.router,  prefix="/api", tags=["ranking"])
@@ -58,7 +66,7 @@ async def health() -> dict:
     }
 
 
-# ── React SPA 서빙 (프로덕션) ─────────────────────────────────────────────────────
+# ── React SPA 서빙 (프로덕션) ─────────────────────────────────────────────────
 # API 라우터가 모두 등록된 뒤에 마운트해야 /api/* 경로가 static에 가로채이지 않는다.
 if STATIC_DIR.exists():
     _index = STATIC_DIR / "index.html"
